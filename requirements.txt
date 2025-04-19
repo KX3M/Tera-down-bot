@@ -1,5 +1,4 @@
-
-pyrogram
+pyrogram @ git+https://github.com/pyrogram/pyrogram.git@v2.0.106
 pymongo
 pymediainfo
 motor
