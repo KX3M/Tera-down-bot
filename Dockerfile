@@ -2,15 +2,22 @@ FROM hrishi2861/terabox:latest
 
 WORKDIR /app
 
-# Optional: Check python & pip versions for debug
-RUN python3 --version && pip3 --version
+# Install necessary system packages
+RUN apt update && apt install -y git build-essential
 
-# Install dependencies
+# Upgrade pip (optional but recommended)
+RUN pip install --upgrade pip
+
+# Copy and install Python requirements
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all source files
+# Clone and install pyrofork (peer fix fork of Pyrogram)
+RUN git clone https://github.com/Hrishi2861/pyrofork-2.2.11-peer-fix.git /tmp/pyrofork
+RUN pip install /tmp/pyrofork
+
+# Copy project files
 COPY . .
 
-# Start the app
+# Start the bot
 CMD ["bash", "start.sh"]
