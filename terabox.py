@@ -139,7 +139,7 @@ async def start_command(client, message):
             logging.error(f"Failed to add user {user_id} to the database: {e}")
 
     # Send sticker and delete it after 2 seconds
-    sticker_message = await message.reply_sticker("CAACAgUAAxkBAAJgv2Z6WDZMA7DVe4Xt2iwIkepCqL5XAALTCgACTEYQVr4X28SRTmMcNQQ")
+    sticker_message = await message.reply_sticker("CAACAgUAAxkBAAEBOXZoBYCpfeN2Rbizyqbu-kar74BhRwACAhEAAkJImFV7G0RPtzk6KDYE")
     await asyncio.sleep(1.8)
     await sticker_message.delete()
 
@@ -162,16 +162,16 @@ async def start_command(client, message):
             return await message.reply("Your token is invalid or expired. Try again by clicking /start.")
         await db_update_verify_status(user_id, {**verify_status, 'is_verified': True, 'verified_time': time.time()})
         logging.info(f"User {user_id} verified successfully")
-        return await message.reply("Your token has been successfully verified and is valid for 12 hours.")
+        return await message.reply("Your token has been successfully verified and is valid for 24 hours.")
 
     if verify_status["is_verified"]:
         logging.info(f"User {user_id} is verified")
         reply_message = (
             f"Welcome, {user_mention}.\n\n"
-            "🌟 I am a terabox downloader bot. Send me any terabox link and I will download it within a few seconds and send it to you ✨."
+            "🌟 I am a terabox downloader bot. Send me any terabox link and I will download it within a few seconds and send it to you ✨.\n\nOnly for files 500MB or smaller\n★ Join @PelDiya & @HateXfree"
         )
-        join_button = InlineKeyboardButton("Join ❤️🚀", url="https://t.me/ultroid_official")
-        developer_button = InlineKeyboardButton("Developer ⚡️", url="https://t.me/ultroidxTeam")
+        join_button = InlineKeyboardButton("Join ❤️🚀", url="https://t.me/+WPKg3Ci2sMBkMDc1")
+        developer_button = InlineKeyboardButton("Developer ⚡️", url="https://t.me/PelDiya")
         reply_markup = InlineKeyboardMarkup([[join_button, developer_button]])
         await message.reply_text(reply_message, reply_markup=reply_markup)
     else:
@@ -179,16 +179,13 @@ async def start_command(client, message):
         if IS_VERIFY:
             token = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
             logging.info(f"Generated token: {token}")
-            link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://t.me/drm2_bot?start=verify_{token}')
+            link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://t.me/TeraboxVideosRoBot?start=verify_{token}')
             await db_update_verify_status(user_id, {**verify_status, 'verify_token': token, 'link': link})
             message_text = (
-                "Your ads token has expired. Please refresh your token and try again.\n\n"
-                f"Token Timeout: {get_exp_time(VERIFY_EXPIRE)}\n\n"
-                "What is the token?\n\n"
-                "This is an ads token. If you pass 1 ad, you can use the bot for 12 hours after passing the ad.\n\n"
+                f"<blockquote><b>›› Hey!!, {message.from_user.mention} </b></blockquote>\n\n<i>Your Ads token is expired, refresh your token and try again.</i> \n\n<b>Token Timeout:</b> 24 Hours \n\n<blockquote expandable><b>What is token?</b> \n<i>This is an ads token. If you pass 1 ad, you can use the bot for 24 hours after passing the ad.</i>\n<b>APPLE/IPHONE USERS COPY TOKEN LINK AND OPEN IN CHROME BROWSER</b></blockquote>"
             )
             token_button = InlineKeyboardButton("Get Token", url=link)
-            tutorial_button = InlineKeyboardButton("How to Verify", url="https://t.me/ultroid_official/18")
+            tutorial_button = InlineKeyboardButton("How to Verify", url="https://t.me/ChipsTutorial/7")
             reply_markup = InlineKeyboardMarkup([[token_button], [tutorial_button]])
             await message.reply_text(message_text, reply_markup=reply_markup)
         else:
@@ -308,9 +305,9 @@ async def handle_message(client, message: Message):
     is_member = await is_user_member(client, user_id)
 
     if not is_member:
-        join_button = InlineKeyboardButton("Join ❤️🚀", url="https://t.me/ultroid_official")
+        join_button = InlineKeyboardButton("Join ❤️🚀", url="https://t.me/+abaqQpyE5SU1MzY1")
         reply_markup = InlineKeyboardMarkup([[join_button]])
-        await message.reply_text("You must join my channel to use me.", reply_markup=reply_markup)
+        await message.reply_text("You must join my channel to use me.\nKindly Please join Channel", reply_markup=reply_markup)
         return
 
     terabox_link = message.text.strip()
@@ -326,7 +323,7 @@ async def handle_message(client, message: Message):
         await upload_video(client, file_path, thumbnail_path, video_title, reply_msg, dump_id, user_mention, user_id, message)
     except Exception as e:
         logging.error(f"Error handling message: {e}")
-        await reply_msg.edit_text("Failed to process your request.\nIf your file size is more than 120MB, it might fail to download.")
+        await reply_msg.edit_text("Failed to process your request.\nIf your file size is more than 450MB, it might fail to download.")
 
 
 if __name__ == "__main__":
