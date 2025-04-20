@@ -146,7 +146,7 @@ async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg
             await message.delete()
 
         await reply_msg.delete()
-        sticker_message = await message.reply_sticker("CAACAgIAAxkBAAEZdwRmJhCNfFRnXwR_lVKU1L9F3qzbtAAC4gUAAj-VzApzZV-v3phk4DQE")
+        sticker_message = await message.reply_sticker("CAACAgUAAxkBAAEBOXRoBYCH9ZVYpx_suIxK7wagcOChTwAC0BcAApNCMFTOyuCdOZrAdjYE")
 
         # Safe file deletion
         for path in [file_path, thumbnail_path]:
