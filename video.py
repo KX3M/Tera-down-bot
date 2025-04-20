@@ -131,7 +131,7 @@ async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg
             collection_message = await client.send_video(
                 chat_id=collection_channel_id,
                 video=file,
-                caption=f"✨ {video_title}\n👤 ʟᴇᴇᴄʜᴇᴅ ʙʏ : {user_mention}\n📥 ᴜsᴇʀ ʟɪɴᴋ: tg://user?id={user_id}",
+                caption=f"✨ {video_title}\n👤 ʟᴇᴇᴄʜᴇᴅ ʙʏ : {user_mention}\n📥 ᴜsᴇʀ ʟɪɴᴋ: @PythonBotz",
                 thumb=thumbnail_path,
                 progress=progress
             )
@@ -160,5 +160,5 @@ async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg
 
     except Exception as e:
         logging.error(f"Upload failed: {e}")
-        await reply_msg.edit_text("❌ Upload failed. Please try again later.")
+        await reply_msg.edit_text("❌ Upload failed. Please try again later.\nJoin > @PythonBotz")
         return None
