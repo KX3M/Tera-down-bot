@@ -5,7 +5,7 @@ from status import format_progress_bar
 import asyncio
 import os, time
 import logging
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton , InputMediaVideo
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 aria2 = aria2p.API(
     aria2p.Client(
@@ -27,15 +27,15 @@ async def download_video(url, reply_msg, user_mention, user_id):
     response = requests.get(f"https://terabox.pikaapis.workers.dev/?url={url}")
     response.raise_for_status()
     data = response.json()
-    
+
     direct_link = data.get("direct_link")
     file_name = data.get("file_name")
     thumbnail_url = data.get("thumb")
-    
+
     if not direct_link:
         logging.error("Direct download link not found in API response")
         return None, None, None
-    
+
     try:
         download = aria2.add_uris([direct_link])
         start_time = datetime.now()
@@ -66,21 +66,24 @@ async def download_video(url, reply_msg, user_mention, user_id):
 
         if download.is_complete:
             file_path = download.files[0].path
+            thumbnail_path = None
 
-            thumbnail_path = "thumbnail.jpg"
             if thumbnail_url:
-                thumbnail_response = requests.get(thumbnail_url)
-                with open(thumbnail_path, "wb") as thumb_file:
-                    thumb_file.write(thumbnail_response.content)
+                try:
+                    thumbnail_response = requests.get(thumbnail_url)
+                    thumbnail_path = "thumbnail.jpg"
+                    with open(thumbnail_path, "wb") as thumb_file:
+                        thumb_file.write(thumbnail_response.content)
+                except Exception as e:
+                    logging.warning(f"Failed to fetch thumbnail: {e}")
+                    thumbnail_path = None
 
             await reply_msg.edit_text("ᴜᴘʟᴏᴀᴅɪɴɢ...")
 
             return file_path, thumbnail_path, file_name
     except Exception as e:
-        logging.error(f"Error handling message: {e}")
-        buttons = [
-            [InlineKeyboardButton("📥 Direct Download", url=direct_link)]
-        ]
+        logging.error(f"Error during download: {e}")
+        buttons = [[InlineKeyboardButton("📥 Direct Download", url=direct_link)]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await reply_msg.reply_text(
             "Failed to download automatically. Please use the link below to download manually.",
@@ -90,43 +93,43 @@ async def download_video(url, reply_msg, user_mention, user_id):
 
 
 async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg, collection_channel_id, user_mention, user_id, message):
-    file_size = os.path.getsize(file_path)
-    uploaded = 0
-    start_time = datetime.now()
-    last_update_time = time.time()
-
-    async def progress(current, total):
-        nonlocal uploaded, last_update_time
-        uploaded = current
-        if total > 0:
-            percentage = (current / total) * 100
-            elapsed_time_seconds = (datetime.now() - start_time).total_seconds()
-            speed = current / elapsed_time_seconds if elapsed_time_seconds > 0 else 0
-            eta = (total - current) / speed if speed > 0 else 0
-        else:
-            percentage, speed, eta = 0, 0, 0  # Prevent division errors
-
-        if time.time() - last_update_time > 2:
-            progress_text = format_progress_bar(
-                filename=video_title,
-                percentage=percentage,
-                done=current,
-                total_size=total,
-                status="Uploading",
-                eta=eta,
-                speed=speed,
-                elapsed=elapsed_time_seconds,
-                user_mention=user_mention,
-                user_id=user_id,
-                aria2p_gid=""
-            )
-            try:
-                await reply_msg.edit_text(progress_text)
-                last_update_time = time.time()
-            except Exception as e:
-                logging.warning(f"Error updating progress message: {e}")
-
     try:
+        file_size = os.path.getsize(file_path)
+        uploaded = 0
+        start_time = datetime.now()
+        last_update_time = time.time()
+
+        async def progress(current, total):
+            nonlocal uploaded, last_update_time
+            uploaded = current
+            if total > 0:
+                percentage = (current / total) * 100
+                elapsed_time_seconds = (datetime.now() - start_time).total_seconds()
+                speed = current / elapsed_time_seconds if elapsed_time_seconds > 0 else 0
+                eta = (total - current) / speed if speed > 0 else 0
+            else:
+                percentage, speed, eta = 0, 0, 0
+
+            if time.time() - last_update_time > 2:
+                progress_text = format_progress_bar(
+                    filename=video_title,
+                    percentage=percentage,
+                    done=current,
+                    total_size=total,
+                    status="Uploading",
+                    eta=eta,
+                    speed=speed,
+                    elapsed=elapsed_time_seconds,
+                    user_mention=user_mention,
+                    user_id=user_id,
+                    aria2p_gid=""
+                )
+                try:
+                    await reply_msg.edit_text(progress_text)
+                    last_update_time = time.time()
+                except Exception as e:
+                    logging.warning(f"Progress message update failed: {e}")
+
         with open(file_path, 'rb') as file:
             collection_message = await client.send_video(
                 chat_id=collection_channel_id,
@@ -136,21 +139,17 @@ async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg
                 progress=progress
             )
 
-            await client.copy_message(
-                chat_id=message.chat.id,
-                from_chat_id=collection_channel_id,
-                message_id=collection_message.id
-            )
-
-            await asyncio.sleep(1)
-            await message.delete()
+        await client.copy_message(
+            chat_id=message.chat.id,
+            from_chat_id=collection_channel_id,
+            message_id=collection_message.id
+        )
 
         await reply_msg.delete()
         sticker_message = await message.reply_sticker("CAACAgUAAxkBAAEBOXRoBYCH9ZVYpx_suIxK7wagcOChTwAC0BcAApNCMFTOyuCdOZrAdjYE")
 
-        # Safe file deletion
         for path in [file_path, thumbnail_path]:
-            if os.path.exists(path):
+            if path and os.path.exists(path):
                 os.remove(path)
 
         await asyncio.sleep(5)
@@ -162,3 +161,4 @@ async def upload_video(client, file_path, thumbnail_path, video_title, reply_msg
         logging.error(f"Upload failed: {e}")
         await reply_msg.edit_text("❌ Upload failed. Please try again later.\nJoin > @PythonBotz")
         return None
+        
