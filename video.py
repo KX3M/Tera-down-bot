@@ -24,11 +24,11 @@ aria2.set_global_options(options)
 
 
 async def download_video(url, reply_msg, user_mention, user_id):
-    response = requests.get(f"https://terabox.pikaapis.workers.dev/?url={url}")
+    response = requests.get(f"http://178.62.122.48:6999/?url={url}")
     response.raise_for_status()
     data = response.json()
 
-    direct_link = data.get("direct_link")
+    direct_link = data.get("link")
     file_name = data.get("file_name")
     thumbnail_url = data.get("thumb")
 
